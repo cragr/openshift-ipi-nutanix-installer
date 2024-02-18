@@ -1,0 +1,25 @@
+---
+- name: 'Destroy OCP Cluster on Nutanix'
+  hosts: 'localhost'
+  tasks:
+
+  - name: |
+      'Destroy Cluster.  Task should complete in less than 5 minutes.
+      To watch the progress, tail the .openshift-install.log in the install directory.'
+    ansible.builtin.shell:
+      cmd: "openshift-install destroy cluster --log-level=debug --dir={{ rhocp_install_path }}"
+
+  - name: 'Register last 35 lines of .openshift_install.log'
+    ansible.builtin.shell:
+      cmd: "tail -35 {{ rhocp_install_path }}/.openshift_install.log"
+    register: install_log_output
+    changed_when: false
+
+  - name: 'Display tail of .openshift_install.log'
+    ansible.builtin.debug:
+      msg: "{{ install_log_output.stdout.split }}"
+
+  - name: 'Delete OCP Install directory'
+    ansible.builtin.file:
+      path: "{{ rhocp_install_path }}"
+      state: absent
